@@ -10,7 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "On2Media\\OAuth2SSO\\": "src/"
+            "On2Media\\OAuth2SSOClient\\": "src/"
         }
     }
 }

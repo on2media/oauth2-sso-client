@@ -1,22 +1,22 @@
 <?php
 
-namespace On2Media\OAuth2SSO;
+namespace On2Media\OAuth2SSOClient;
 
 class LocalStorage
 {
-    public static function setOAuth2State($value)
+    public function setOAuth2State($value)
     {
         $_SESSION['oauth2state'] = $value;
-        // return $this;
+        return $this;
     }
 
-    public static function unsetOAuth2State()
+    public function unsetOAuth2State()
     {
         unset($_SESSION['oauth2state']);
-        // return $this;
+        return $this;
     }
 
-    public static function getOAuth2State()
+    public function getOAuth2State()
     {
         if (isset($_SESSION['oauth2state'])) {
             return $_SESSION['oauth2state'];
@@ -24,19 +24,19 @@ class LocalStorage
         return null;
     }
 
-    public static function setAuth(Authorisation $value)
+    public function setAuth(Authorisation $value)
     {
         $_SESSION['auth'] = $value;
-        // return $this;
+        return $this;
     }
 
-    public static function unsetAuth()
+    public function unsetAuth()
     {
         unset($_SESSION['auth']);
-        // return $this;
+        return $this;
     }
 
-    public static function getAuth()
+    public function getAuth()
     {
         if (isset($_SESSION['auth'])) {
             return $_SESSION['auth'];
