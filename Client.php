@@ -6,13 +6,17 @@ class Client
 {
     private $oAuth2Provider;
 
+    private $localStorage;
+
     private $eventListener;
 
     public function __construct(
         \League\OAuth2\Client\Provider\GenericProvider $oAuth2Provider,
+        LocalStorage $localStorage,
         EventListener $eventListener
     ) {
         $this->oAuth2Provider = $oAuth2Provider;
+        $this->localStorage = $localStorage;
         $this->eventListener = $eventListener;
     }
 
@@ -68,7 +72,7 @@ class Client
 
     public function checkSignedIn()
     {
-        if (!isset($_SESSION['auth'])) {
+        if (!LocalStorage::getAuth()) {
 
             header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
             header('Location: ' . self::getAuthenticateUrl());
@@ -76,20 +80,20 @@ class Client
 
         }
 
-        if ($_SESSION['auth']['expires'] < time()) {
+        if (LocalStorage::getAuth()->getExpires() < time()) {
 
             try {
 
                 $newAccessToken = $this->oAuth2Provider->getAccessToken(
                     'refresh_token',
                     [
-                        'refresh_token' => $_SESSION['auth']['refresh_token']
+                        'refresh_token' => LocalStorage::getAuth()->getRefreshToken()
                     ]
                 );
 
             } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 
-                unset($_SESSION['auth']);
+                LocalStorage::unsetAuth();
 
                 if ($e->getMessage() != 'invalid_grant') {
                     throw $e;
@@ -102,8 +106,8 @@ class Client
 
             }
 
-            $_SESSION['auth']['access_token'] = $newAccessToken->getToken();
-            $_SESSION['auth']['expires'] = $newAccessToken->getExpires();
+            LocalStorage::getAuth()->setAccessToken($newAccessToken->getToken());
+            LocalStorage::getAuth()->setExpires($newAccessToken->getExpires());
 
         }
 
@@ -111,7 +115,7 @@ class Client
 
             $accessToken = new \League\OAuth2\Client\Token\AccessToken(
                 [
-                    'access_token' => $_SESSION['auth']['access_token'],
+                    'access_token' => LocalStorage::getAuth()->getAccessToken(),
                 ]
             );
 
@@ -126,7 +130,7 @@ class Client
             $this->getEventListener()->sessionClosed();
 
             // the access token has prematurely expired due to inactivity
-            $_SESSION['auth']['expires'] = 0;
+            LocalStorage::getAuth()->setExpires(0);
 
             header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
             header('Location: ' . self::getAuthenticateUrl());
