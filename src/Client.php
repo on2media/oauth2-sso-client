@@ -144,9 +144,11 @@ class Client
         }
     }
 
-    public function checkSignedIn()
+    public function checkSignedIn($returnUrl = null)
     {
         if (!$this->localStorage->getAuth()) {
+
+            $this->localStorage->setReturnUrl($returnUrl);
 
             header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
             header('Location: ' . $this->config['authenticate_url']);
@@ -168,6 +170,7 @@ class Client
             } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 
                 $this->localStorage->unsetAuth();
+                $this->localStorage->setReturnUrl($returnUrl);
 
                 if ($e->getMessage() != 'invalid_grant') {
                     throw $e;
@@ -205,6 +208,7 @@ class Client
 
             // the access token has prematurely expired due to inactivity
             $this->localStorage->getAuth()->setExpires(0);
+            $this->localStorage->setReturnUrl($returnUrl);
 
             header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
             header('Location: ' . $this->config['authenticate_url']);
@@ -213,9 +217,10 @@ class Client
         }
     }
 
-    public function handleForceRefreshToken()
+    public function handleForceRefreshToken($returnUrl = null)
     {
         $this->localStorage->getAuth()->setExpires(0);
+        $this->localStorage->setReturnUrl($returnUrl);
 
         header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
         header('Location: ' . $this->config['authenticate_url']);

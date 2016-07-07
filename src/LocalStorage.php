@@ -43,4 +43,24 @@ class LocalStorage
         }
         return null;
     }
+
+    public function setReturnUrl($value)
+    {
+        $_SESSION['return_url'] = $value;
+        return $this;
+    }
+
+    public function unsetReturnUrl()
+    {
+        unset($_SESSION['return_url']);
+        return $this;
+    }
+
+    public function getReturnUrl()
+    {
+        if (isset($_SESSION['return_url'])) {
+            return $_SESSION['return_url'];
+        }
+        return null;
+    }
 }
