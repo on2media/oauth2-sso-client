@@ -18,7 +18,7 @@ class ClientLite
         EventListener $eventListener = null
     ) {
         $this->config = $config;
-        $this->oAuth2Provider = new \League\OAuth2\Client\Provider\GenericProvider(
+        $this->oAuth2Provider = new Provider(
             [
                 'clientId' => $config['client_id'],
                 'clientSecret' => $config['client_secret'],
@@ -97,15 +97,17 @@ class ClientLite
 
     public function checkSignedIn($returnUrl = null)
     {
-        $authenticateUrl = $this->initAuthenticateState();
+        if (!$this->isSignedIn($returnUrl)) {
+            $this->redirectToAuthenticateUrl();
+        }
+    }
 
+    public function isSignedIn($returnUrl = null, $keepTimeout = false)
+    {
         if (!$this->localStorage->getAuth()) {
 
             $this->localStorage->setReturnUrl($returnUrl);
-
-            header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
-            header('Location: ' . $authenticateUrl);
-            exit;
+            return false;
 
         }
 
@@ -130,9 +132,7 @@ class ClientLite
                 }
 
                 $this->eventListener->sessionClosed();
-                header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
-                header('Location: ' . $authenticateUrl);
-                exit;
+                return false;
 
             }
 
@@ -149,7 +149,9 @@ class ClientLite
                 ]
             );
 
+            $this->oAuth2Provider->setKeepTimeout($keepTimeout);
             $resourceOwner = $this->oAuth2Provider->getResourceOwner($accessToken);
+            $this->localStorage->getAuth()->setResourceOwner($resourceOwner->toArray());
 
         } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e) {
 
@@ -163,11 +165,11 @@ class ClientLite
             $this->localStorage->getAuth()->setExpires(0);
             $this->localStorage->setReturnUrl($returnUrl);
 
-            header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
-            header('Location: ' . $authenticateUrl);
-            exit;
+            return false;
 
         }
+
+        return true;
     }
 
     public function handleForceRefreshToken($returnUrl = null)
@@ -175,6 +177,11 @@ class ClientLite
         $this->localStorage->getAuth()->setExpires(0);
         $this->localStorage->setReturnUrl($returnUrl);
 
+        $this->redirectToAuthenticateUrl();
+    }
+
+    private function redirectToAuthenticateUrl()
+    {
         $authenticateUrl = $this->initAuthenticateState();
 
         header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
