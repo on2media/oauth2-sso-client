@@ -47,6 +47,12 @@ class Authorisation
         return $this->expires;
     }
 
+    public function setResourceOwner($value)
+    {
+        $this->resourceOwner = $value;
+        return $this;
+    }
+
     public function getResourceOwner()
     {
         return $this->resourceOwner;
