@@ -12,6 +12,8 @@ class ClientLite
 
     protected $eventListener;
 
+    protected $justTimedOut = false;
+
     public function __construct(
         array $config,
         LocalStorage $localStorage = null,
@@ -104,6 +106,8 @@ class ClientLite
 
     public function isSignedIn($returnUrl = null, $keepTimeout = false)
     {
+        $this->justTimedOut = false;
+
         if (!$this->localStorage->getAuth()) {
 
             $this->localStorage->setReturnUrl($returnUrl);
@@ -132,6 +136,7 @@ class ClientLite
                 }
 
                 $this->eventListener->sessionClosed();
+                $this->justTimedOut = true;
                 return false;
 
             }
@@ -160,6 +165,7 @@ class ClientLite
             }
 
             $this->eventListener->sessionClosed();
+            $this->justTimedOut = true;
 
             // the access token has prematurely expired due to inactivity
             $this->localStorage->getAuth()->setExpires(0);
@@ -193,6 +199,10 @@ class ClientLite
     {
         $authenticateUrl = $this->oAuth2Provider->getAuthorizationUrl();
         $this->localStorage->setOAuth2State($this->oAuth2Provider->getState());
+        if ($this->justTimedOut === true) {
+            $authenticateUrl .= '&just_timed_out=1';
+            $this->justTimedOut = false;
+        }
         return $authenticateUrl;
     }
 
