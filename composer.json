@@ -1,12 +1,11 @@
 {
     "name": "on2media/oauth2-sso-client",
     "description": "OAuth2 single sign-on client",
-    "version": "0.1.0",
     "type": "library",
     "keywords": ["on2 media", "oauth2", "sso", "single sign-on"],
     "license": "MIT",
     "require": {
-        "league/oauth2-client": "^2.3"
+        "league/oauth2-client": "^2.6.1"
     },
     "autoload": {
         "psr-4": {
