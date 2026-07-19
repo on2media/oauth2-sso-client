@@ -16,8 +16,8 @@ class ClientLite
 
     public function __construct(
         array $config,
-        LocalStorage $localStorage = null,
-        EventListener $eventListener = null
+        ?LocalStorage $localStorage = null,
+        ?EventListener $eventListener = null
     ) {
         $this->config = $config;
         $this->oAuth2Provider = new Provider(
@@ -36,15 +36,15 @@ class ClientLite
 
     protected function buildAuthUrl($url)
     {
-        list($timeMid, $timeLow) = explode(' ', microtime());
-        $nonce = dechex($timeLow) . sprintf('%04x', (int) substr($timeMid, 2) & 0xffff);
+        [$timeMid, $timeLow] = explode(' ', microtime());
+        $nonce = dechex($timeLow).sprintf('%04x', (int) substr($timeMid, 2) & 0xFFFF);
         $hash = hash_hmac(
             'sha1',
-            $this->config['client_id'] . $nonce,
+            $this->config['client_id'].$nonce,
             $this->config['client_secret']
         );
 
-        return $url . '?' . http_build_query(
+        return $url.'?'.http_build_query(
             [
                 'sso' => '1',
                 'client' => $this->config['client_id'],
@@ -65,7 +65,7 @@ class ClientLite
 
         if (isset($_GET['error'])) {
             throw new Exception(
-                'Unexpected error, ' . $_GET['error'] . ': ' . $_GET['error_description']
+                'Unexpected error, '.$_GET['error'].': '.$_GET['error_description']
             );
         }
 
@@ -122,7 +122,7 @@ class ClientLite
                 $newAccessToken = $this->oAuth2Provider->getAccessToken(
                     'refresh_token',
                     [
-                        'refresh_token' => $this->localStorage->getAuth()->getRefreshToken()
+                        'refresh_token' => $this->localStorage->getAuth()->getRefreshToken(),
                     ]
                 );
 
@@ -190,8 +190,8 @@ class ClientLite
     {
         $authenticateUrl = $this->initAuthenticateState();
 
-        header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
-        header('Location: ' . $authenticateUrl);
+        header($_SERVER['SERVER_PROTOCOL'].' 302 Found');
+        header('Location: '.$authenticateUrl);
         exit;
     }
 
@@ -211,8 +211,8 @@ class ClientLite
         $this->localStorage->unsetAuth();
         $this->eventListener->signedOut();
 
-        header($_SERVER['SERVER_PROTOCOL'] . ' 302 Found');
-        header('Location: ' . $this->buildAuthUrl($this->config['sso_sign_out_url']));
+        header($_SERVER['SERVER_PROTOCOL'].' 302 Found');
+        header('Location: '.$this->buildAuthUrl($this->config['sso_sign_out_url']));
         exit;
     }
 }
